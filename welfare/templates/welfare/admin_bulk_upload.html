@@ -1,0 +1,23 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module" style="padding: 20px; background: #fff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h2>Bulk Upload Contributions (CSV)</h2>
+        <p class="help">Upload a CSV file with the following column format (with header row):<br>
+        <code>membership_no, amount, month_for, receipt_no</code></p>
+        
+        <form method="post" enctype="multipart/form-data" style="margin-top: 20px;">
+            {% csrf_token %}
+            <div style="margin-bottom: 15px;">
+                <label for="csv_file" style="font-weight: bold; display: block; margin-bottom: 5px;">Select CSV File:</label>
+                <input type="file" name="csv_file" accept=".csv" required style="padding: 5px;">
+            </div>
+            <button type="submit" class="button" style="background: #0d6efd; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+                Upload & Process Contributions
+            </button>
+            <a href=".." class="button" style="background: #6c757d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-left: 10px;">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

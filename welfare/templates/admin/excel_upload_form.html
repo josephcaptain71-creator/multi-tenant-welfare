@@ -1,0 +1,10 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<div style="padding: 20px;">
+    <form action="." method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Upload & Parse File" class="default" style="background: #264b5d; color: white; padding: 10px 15px; border: none; cursor: pointer; border-radius: 4px;">
+    </form>
+</div>
+{% endblock %}

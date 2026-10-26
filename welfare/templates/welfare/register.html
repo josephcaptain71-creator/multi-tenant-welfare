@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .form-step { display: none; }
+        .form-step.active { display: block; }
+        .step-indicator { color: #b3b3b3; font-weight: bold; border-bottom: 2px solid #e0e0e0; padding-bottom: 5px; flex-grow: 1; text-align: center; }
+        .step-indicator.active { color: #0d6efd; border-color: #0d6efd; }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white py-3">
+                    <h4 class="mb-0 text-center">Welfare Registration Form</h4>
+                </div>
+                <div class="card-body p-4">
+
+                    <!-- Step Progress Indicators -->
+                    <div class="d-flex justify-content-between mb-4">
+                        <span class="step-indicator active" id="ind-0">Account</span>
+                        {% for section in sections %}
+                            <span class="step-indicator" id="ind-{{ section.order }}">{{ section.title }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Registration Form -->
+                    <form method="post" action="." enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Step 0: Base Credentials -->
+                        <div class="form-step active" id="step-0">
+                            <h5 class="mb-3 text-secondary">Account Credentials</h5>
+                            <div class="row g-3">
+                                <!-- Consolidated Full Name -->
+                                <div class="col-12">
+                                    <label class="form-label">Full Name *</label>
+                                    <input type="text" name="full_name" class="form-control" placeholder="Enter your full name" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Username *</label>
+                                    <input type="text" name="username" class="form-control" placeholder="Choose a username" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Email *</label>
+                                    <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                                </div>
+
+                                <!-- Password and Confirm Password -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Password *</label>
+                                    <input type="password" name="password" class="form-control" placeholder="Create password" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Confirm Password *</label>
+                                    <input type="password" name="confirm_password" class="form-control" placeholder="Re-enter password" required>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary px-4" onclick="goToStep(1)">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Tenant Steps -->
+                        {% for section in sections %}
+                        <div class="form-step" id="step-{{ section.order }}">
+                            <h5 class="mb-1 text-secondary">{{ section.title }}</h5>
+                            {% if section.description %}
+                                <p class="text-muted small mb-4">{{ section.description }}</p>
+                            {% endif %}
+                            
+                            <div class="row g-3">
+                                {% for field in section.fields.all %}
+                                <div class="col-12">
+                                    <label class="form-label">{{ field.field_label }}{% if field.is_required %} *{% endif %}</label>
+                                    
+                                    {% if field.field_type == "TEXT" %}
+                                        <input type="text" name="{{ field.field_name_slug }}" class="form-control" {% if field.is_required %}required{% endif %}>
+                                    
+                                    {% elif field.field_type == "TEXTAREA" %}
+                                        <textarea name="{{ field.field_name_slug }}" class="form-control" rows="3" {% if field.is_required %}required{% endif %}></textarea>
+                                    
+                                    {% elif field.field_type == "NUMBER" %}
+                                        <input type="number" name="{{ field.field_name_slug }}" class="form-control" {% if field.is_required %}required{% endif %}>
+                                    
+                                    {% elif field.field_type == "DATE" %}
+                                        <input type="date" name="{{ field.field_name_slug }}" class="form-control" {% if field.is_required %}required{% endif %}>
+                                    
+                                    {% elif field.field_type == "BOOLEAN" %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="{{ field.field_name_slug }}" id="chk-{{ field.id }}">
+                                            <label class="form-check-label" for="chk-{{ field.id }}">Yes</label>
+                                        </div>
+
+                                    {% elif field.field_type == "SELECT" %}
+                                        <select name="{{ field.field_name_slug }}" class="form-control" {% if field.is_required %}required{% endif %}>
+                                            <option value="">-- Select Option --</option>
+                                            <option value="True">Yes</option>
+                                            <option value="False">No</option>
+                                        </select>
+                                    
+                                    {% elif field.field_type == "FILE" %}
+                                        <input type="file" name="{{ field.field_name_slug }}" class="form-control" {% if field.is_required %}required{% endif %}>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mt-4 d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary px-4" onclick="goToStep({{ section.order|add:'-1' }})">Back</button>
+                                {% if forloop.last %}
+                                    <button type="submit" class="btn btn-success px-4">Submit Registration</button>
+                                {% else %}
+                                    <button type="button" class="btn btn-primary px-4" onclick="goToStep({{ section.order|add:'1' }})">Next</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 0;
+
+    function goToStep(stepIndex) {
+        // Enforce HTML5 constraint validations before letting the user step forward
+        if (stepIndex > currentStep) {
+            const activeFormFields = document.getElementById(`step-${currentStep}`).querySelectorAll('[required]');
+            for (let field of activeFormFields) {
+                if (!field.checkValidity()) {
+                    field.reportValidity();
+                    return;
+                }
+            }
+        }
+
+        // Hide current step content and indicator active status
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        document.getElementById(`ind-${currentStep}`).classList.remove('active');
+
+        // Show next step content and indicator active status
+        currentStep = stepIndex;
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        document.getElementById(`ind-${currentStep}`).classList.add('active');
+    }
+</script>
+</body>
+</html>
